@@ -38,7 +38,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 
 our @attr = qw
@@ -158,6 +158,20 @@ __END__
 =head1 NAME
 
  DBIx::DBH - Perl extension for simplifying database connections
+
+=head1 SYNOPSIS
+
+ use DBIx::DBH;
+
+ my %opt = (tty => 1) ;
+ my %dat = ( 
+     driver => 'Pg',
+     dbname => 'db_terry',
+     user => 'terry',
+     password => 'markso'
+ );
+
+ my $dbh = DBIx::DBH::connect(%dat, %opt) ;
 
 =head1 ABSTRACT
 
