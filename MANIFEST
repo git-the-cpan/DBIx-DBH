@@ -3,6 +3,7 @@ ChangeLog
 lib/DBIx/DBH.pm
 lib/DBIx/DBH/mysql.pm
 lib/DBIx/DBH/Pg.pm
+lib/DBIx/DBH/Sybase.pm
 Makefile.PL
 MANIFEST
 META.yml

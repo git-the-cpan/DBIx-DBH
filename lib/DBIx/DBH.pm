@@ -34,7 +34,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.05';
+our $VERSION = '0.07';
 
 
 our @attr = qw
@@ -173,6 +173,9 @@ L<Params::Validate>. It does not
 allow parameters which are not defined by the DBI or the database driver
 driver into the hash.
 
+I provides support for MySQL, Postgres and Sybase (thanks to Rachel Richard 
+for the Sybase support). 
+
 =head1 DBIx::DBH API
 
 =head2 $dbh = connect(%params)
@@ -264,6 +267,8 @@ L<Alzabo>.
 =head1 AUTHOR
 
 Terrence Brannon, E<lt>bauhaus@metaperl.comE<gt>
+
+Sybase support contributed by Rachel Richard.
 
 Substantial suggestions by M. Simon Ryan Cavaletto.
 
