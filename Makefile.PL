@@ -5,7 +5,10 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'DBIx::DBH',
     VERSION_FROM      => 'lib/DBIx/DBH.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
+    PREREQ_PM         => {
+			  Params::Validate => 0.7,
+			  DBI              => 1.3
+			 }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/DBIx/DBH.pm', # retrieve abstract from module
        AUTHOR         => 'Terrence Brannon <terry@>') : ()),

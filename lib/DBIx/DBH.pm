@@ -34,7 +34,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 our @attr = qw
@@ -162,7 +162,8 @@ DBI database connections.
 It's chief and unique contribution to this set of modules on CPAN is that
 it forms the DSN string for you, regardless of database vendor. Another thing 
 about this module is that
-it takes a Perl hash as input, making it ideal for converting HTTP form data
+it takes a flat Perl hash 
+as input, making it ideal for converting HTTP form data 
 and or config file information into DBI database handles. It also can form
 DSN strings for both major free databases and is subclassed to support
 extension for other databases.
@@ -202,7 +203,7 @@ C<%params> can have the following optional parameters
 
 C<%params> can also have parameters specific to a particular database
 vendor. See
-L<DBIx::DBH::mysql> and L<BIx::DBH::Pg> for additional parameters
+L<DBIx::DBH::mysql> and L<DBIx::DBH::Pg> for additional parameters
 acceptable based on database vendor.
 
 =head2 ($dsn, $user, $pass, $attr) = connect_data(%params)
@@ -212,6 +213,17 @@ a list of the 4 arguments required by the L<DBI> C<connect()>
 function. This is useful for working with modules that have an
 alternative connection syntax such as L<DBIx::AnyDBD> or 
 L<Alzabo>.
+
+=head1 SEE ALSO
+
+=over
+
+=item * L<Config::DBI>
+=item * L<DBIx::Connect>
+=item * L<DBIx::Password>
+=item * L<Ima::DBI>
+
+=back
 
 =head1 AUTHOR
 
