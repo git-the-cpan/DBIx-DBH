@@ -15,6 +15,10 @@ use Params::Validate qw( :all );
 
 require Exporter;
 
+my @driver = qw(mysql Pg Sybase);
+my $driver = join '|', @driver;
+my $driver_re = qr/($driver)/ ;
+
 our @ISA = qw(Exporter);
 
 # Items to export into callers namespace by default. Note: do not export
@@ -34,7 +38,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 
 our @attr = qw
@@ -124,8 +128,8 @@ sub connect_data {
   my %p = @_;
 
   %p = validate( @_, { driver => { callbacks =>
-				   { 'only valid drivers are mysql and Pg' =>
-				     sub { $_[0] =~ /mysql|Pg/ } }}} ) ;
+				   { "only valid drivers are @driver" =>
+				     sub { $_[0] =~ $driver_re } }}} ) ;
 
   my $subclass = "DBIx::DBH::$p{driver}";
 
@@ -206,6 +210,7 @@ C<%params> can have the following optional parameters
 
 C<%params> can also have parameters specific to a particular database
 driver. See
+L<DBIx::DBH::Sybase>,
 L<DBIx::DBH::mysql> and L<DBIx::DBH::Pg> for additional parameters
 acceptable based on database driver.
 
@@ -233,6 +238,21 @@ useful for working with modules that have an
 alternative connection syntax such as L<DBIx::AnyDBD> or 
 L<Alzabo>.
 
+=head1 ADDING A DRIVER
+
+Consists of these steps:
+
+=over 
+
+=item * adding a word to the C<@driver> array in DBH.pm
+
+this array consists of whitespace-separated driver names and is used to 
+validate drivers in C<connect_data>
+
+=item * adding a module to the C<DBIx::DBH> hiearchy
+
+=back
+
 =head1 SEE ALSO
 
 =over
@@ -253,14 +273,14 @@ L<Alzabo>.
 
 =item * expose parm validation info:
 
-> 
-> It would be nice if the parameter validation info was exposed in some 
-> way, so that an interactive piece of software can ask a user which 
-> driver they want, then query your module for a list of supported 
-> parameters, then ask the user to fill them in. (Perhaps move the hash 
-> of validation parameters to a new method named valid_params, and then 
-> have connect_data call that method and pass the return value to 
-> validate?)
+ > 
+ > It would be nice if the parameter validation info was exposed in some 
+ > way, so that an interactive piece of software can ask a user which 
+ > driver they want, then query your module for a list of supported 
+ > parameters, then ask the user to fill them in. (Perhaps move the hash 
+ > of validation parameters to a new method named valid_params, and then 
+ > have connect_data call that method and pass the return value to 
+ > validate?)
 
 =cut
 
