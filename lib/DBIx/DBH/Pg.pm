@@ -13,7 +13,7 @@ sub connect_data {
 
   my %p = @_;
 
-  %p = validate( @_, { vendor => { type => SCALAR },
+  %p = validate( @_, { driver => { type => SCALAR },
 		       dbname => { type => SCALAR },
 		       user => { type => SCALAR | UNDEF,
 				 optional => 1 },
@@ -30,7 +30,7 @@ sub connect_data {
 		       map { $_ => 0 } (@optional_pg_, @DBIx::DBH::attr)
 		     } );
 
-  my $dsn = "dbi:$p{vendor}:dbname=$p{dbname}";
+  my $dsn = "dbi:$p{driver}:dbname=$p{dbname}";
   foreach ( qw( host port options tty ) ) {
     $dsn .= ";$_=$p{$_}" if (defined $p{$_});
   }
@@ -53,7 +53,7 @@ sub connect_data {
 
 =head1 connect()
 
-L<DBIx::DBH> covered the options available to any database vendor as 
+L<DBIx::DBH> covered the options available to any database driver as 
 specified in L<DBI>. Here we
 list optional arguments supported by Pg. Please read L<DBD::Pg> for
 details
@@ -63,6 +63,7 @@ details
 =over 4
 
 =item * options
+
 =item * tty
 
 =back
@@ -72,7 +73,9 @@ details
 =over 4
 
 =item * pg_auto_escape
+
 =item * pg_enable_utf8
+
 =item * pg_bool_tf
 
 =back

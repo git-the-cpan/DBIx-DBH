@@ -18,7 +18,7 @@ ok(1); # If we made it this far, we're ok.
 
 
 my @opt = 'mysql_client_found_rows';
-my @dat =       ( vendor => 'mysql',
+my @dat =       ( driver => 'mysql',
 	dbname => 'db_terry',
 	user => 'terry',
 	password => 'markso' ) ;

@@ -20,7 +20,7 @@ ok(1); # If we made it this far, we're ok.
 
 
 my @connect_data = DBIx::DBH->connect_data
-  ( vendor => 'mysql',
+  ( driver => 'mysql',
     dbname => 'db_terry',
     user => 'terry',
     password => 'stLcmp904c.85!!',
@@ -31,7 +31,7 @@ my @connect_data = DBIx::DBH->connect_data
 
 
 @connect_data = DBIx::DBH->connect_data
-  ( vendor => 'Pg',
+  ( driver => 'Pg',
     dbname => 'template1',
     user => 'terry',
    );

@@ -11,7 +11,7 @@ DBIx::DBH.
 
 Composing a syntactically valid DBI DSN is a bit time-consuming and
 troublesome. Part of the reason for this is that the syntax varies from
-vendor to vendor. Another reason is that the DSN string is compound
+driver to driver. Another reason is that the DSN string is compound
 data, representing the complex of a minimum of 3 entities. Since 2001,
 3 modules have entered CPAN with the sole and express intent to store
 DBI database connection information and use this information to
@@ -49,9 +49,9 @@ hash elements have slightly different naming:
 
 =over
 
-=item * the database vendor must be supplied
+=item * the database driver must be supplied
 
-The C<vendor> key is used to supply the database
+The C<driver> key is used to supply the database
 
 =item * the name key is dbname
 
@@ -61,7 +61,7 @@ The C<vendor> key is used to supply the database
 
 Another difference is that _make_dbh() called C<DBI->connect()> with a
 fixed set of DBI attributes. The refactoring allows for any attributes
-to be used, both from DBI and from the vendor's driver.
+to be used, both from DBI and from the driver's driver.
 
 =head1 Database Connection Modules, Past and Present
 

@@ -34,7 +34,7 @@ our @EXPORT = qw(
 	
 );
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 
 our @attr = qw
@@ -123,11 +123,11 @@ sub connect_data {
   my $class = shift;
   my %p = @_;
 
-  %p = validate( @_, { vendor => { callbacks =>
-				   { 'only valid vendors are mysql and Pg' =>
+  %p = validate( @_, { driver => { callbacks =>
+				   { 'only valid drivers are mysql and Pg' =>
 				     sub { $_[0] =~ /mysql|Pg/ } }}} ) ;
 
-  my $subclass = "DBIx::DBH::$p{vendor}";
+  my $subclass = "DBIx::DBH::$p{driver}";
 
   my $eval_string = "require $subclass";
 
@@ -160,7 +160,7 @@ __END__
 DBIx::DBH is designed to facilitate and validate the process of creating 
 DBI database connections.
 It's chief and unique contribution to this set of modules on CPAN is that
-it forms the DSN string for you, regardless of database vendor. Another thing 
+it forms the DSN string for you, regardless of database driver. Another thing 
 about this module is that
 it takes a flat Perl hash 
 as input, making it ideal for converting HTTP form data 
@@ -170,7 +170,7 @@ extension for other databases.
 
 DBIx::DBH provides rigorous validation on the input parameters via
 L<Params::Validate>. It does not
-allow parameters which are not defined by the DBI or the database vendor
+allow parameters which are not defined by the DBI or the database driver
 driver into the hash.
 
 =head1 DBIx::DBH API
@@ -181,7 +181,7 @@ C<%params> requires the following as keys:
 
 =over 4
 
-=item * vendor : the value matches /\a(mysql|Pg)\Z/ (case-sensitive).
+=item * driver : the value matches /\a(mysql|Pg)\Z/ (case-sensitive).
 
 =item * dbname : the value is the name of the database to connect to
 
@@ -202,9 +202,9 @@ C<%params> can have the following optional parameters
 =back
 
 C<%params> can also have parameters specific to a particular database
-vendor. See
+driver. See
 L<DBIx::DBH::mysql> and L<DBIx::DBH::Pg> for additional parameters
-acceptable based on database vendor.
+acceptable based on database driver.
 
 =head2 ($dsn, $user, $pass, $attr) = connect_data(%params)
 
@@ -214,20 +214,58 @@ function. This is useful for working with modules that have an
 alternative connection syntax such as L<DBIx::AnyDBD> or 
 L<Alzabo>.
 
+=head2 ($dsn, $user, $pass, $attr) = connect_data(%params)
+
+C<connect_data> takes the same arguments as C<connect()> but returns
+a list of the 4 arguments required by the L<DBI> C<connect()>
+function. This is useful for working with modules that have an
+alternative connection syntax such as L<DBIx::AnyDBD> or 
+L<Alzabo>.
+
+=head2 $dsn = form_dsn(%params)
+
+C<form_dsn> takes the same arguments as C<connect()> but returns
+only the properly formatted DSN string. This is also 
+useful for working with modules that have an
+alternative connection syntax such as L<DBIx::AnyDBD> or 
+L<Alzabo>.
+
 =head1 SEE ALSO
 
 =over
 
 =item * L<Config::DBI>
+
 =item * L<DBIx::Connect>
+
 =item * L<DBIx::Password>
+
 =item * L<Ima::DBI>
 
 =back
 
+=head1 TODO
+
+=over
+
+=item * expose parm validation info:
+
+> 
+> It would be nice if the parameter validation info was exposed in some 
+> way, so that an interactive piece of software can ask a user which 
+> driver they want, then query your module for a list of supported 
+> parameters, then ask the user to fill them in. (Perhaps move the hash 
+> of validation parameters to a new method named valid_params, and then 
+> have connect_data call that method and pass the return value to 
+> validate?)
+
+=cut
+
 =head1 AUTHOR
 
 Terrence Brannon, E<lt>bauhaus@metaperl.comE<gt>
+
+Substantial suggestions by M. Simon Ryan Cavaletto.
 
 =head1 COPYRIGHT AND LICENSE
 

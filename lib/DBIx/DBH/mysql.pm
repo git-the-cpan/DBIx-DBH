@@ -24,7 +24,7 @@ sub connect_data {
 
   my %p = @_;
 
-  %p = validate( @_, { vendor => { type => SCALAR },
+  %p = validate( @_, { driver => { type => SCALAR },
 		       dbname => { type => SCALAR },
 		       user => { type => SCALAR | UNDEF,
 				 optional => 1 },
@@ -37,7 +37,7 @@ sub connect_data {
 		       map { $_ => 0 } (@optional_mysql_, @DBIx::DBH::attr)
 		     } );
 
-  my $dsn = "DBI:$p{vendor}:$p{dbname}";
+  my $dsn = "DBI:$p{driver}:$p{dbname}";
   foreach ( qw( host port ) ) {
     $dsn .= ";$_=$p{$_}" if (defined $p{$_});
   }
@@ -62,7 +62,7 @@ sub connect_data {
 
 =head1 connect()
 
-L<DBIx::DBH> covered the options available to any database vendor. Here we
+L<DBIx::DBH> covered the options available to any database driver. Here we
 list optional arguments supported by MySQL. Please read L<DBD::mysql> for 
 details. All of these arguments apply to the DSN.
 

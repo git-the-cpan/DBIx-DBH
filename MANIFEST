@@ -1,5 +1,5 @@
 ANNOUNCE-FACTOR.pod
-Changes
+ChangeLog
 lib/DBIx/DBH.pm
 lib/DBIx/DBH/mysql.pm
 lib/DBIx/DBH/Pg.pm

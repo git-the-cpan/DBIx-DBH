@@ -19,7 +19,7 @@ use_ok('DBIx::DBH');
 # its man page ( perldoc Test::More ) for help writing this test script.
 
 my @opt = 'tty';
-my @dat = ( vendor => 'Pg',
+my @dat = ( driver => 'Pg',
 	dbname => 'db_terry',
 	user => 'terry',
 	password => 'markso'
