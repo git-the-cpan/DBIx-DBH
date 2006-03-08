@@ -1,3 +1,8 @@
+
+	* Add SQLite driver (Mark Stosberg)
+
+	* Allow new drivers to published and used without modifying DBIx::DBH (Mark Stosberg)
+
 2004-12-01  Terrence Brannon  <terry@hcoop.net>
 
 	* changed "vendor" key to driver per Cavaletto

@@ -9,37 +9,7 @@ use Data::Dumper;
 use DBI;
 use Params::Validate qw( :all );
 
-#use DBIx::DBH::mysql;
-#use DBIx::DBH::Pg;
-
-
-require Exporter;
-
-my @driver = qw(mysql Pg Sybase);
-my $driver = join '|', @driver;
-my $driver_re = qr/($driver)/ ;
-
-our @ISA = qw(Exporter);
-
-# Items to export into callers namespace by default. Note: do not export
-# names by default without a very good reason. Use EXPORT_OK instead.
-# Do not simply export all your public functions/methods/constants.
-
-# This allows declaration	use DBIx::DBH ':all';
-# If you do not need this, moving things directly into @EXPORT or @EXPORT_OK
-# will save memory.
-our %EXPORT_TAGS = ( 'all' => [ qw(
-	
-) ] );
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-our @EXPORT = qw(
-	
-);
-
-our $VERSION = '0.09';
-
+our $VERSION = '0.10';
 
 our @attr = qw
   (  
@@ -127,15 +97,9 @@ sub connect_data {
   my $class = shift;
   my %p = @_;
 
-  %p = validate( @_, { driver => { callbacks =>
-				   { "only valid drivers are @driver" =>
-				     sub { $_[0] =~ $driver_re } }}} ) ;
-
   my $subclass = "DBIx::DBH::$p{driver}";
-
-  my $eval_string = "require $subclass";
-
-  eval $eval_string;
+  eval "require $subclass";
+  die "unable to require $subclass to support the $p{driver} driver.\n" if $@;
 
   my ($dsn, $user, $pass, $attr) = $subclass->connect_data(@_);
   $attr = dbi_attr($attr, %p);
@@ -171,7 +135,7 @@ __END__
      password => 'markso'
  );
 
- my $dbh = DBIx::DBH::connect(%dat, %opt) ;
+ my $dbh = DBIx::DBH->connect(%dat, %opt) ;
 
 =head1 ABSTRACT
 
@@ -254,16 +218,8 @@ L<Alzabo>.
 
 =head1 ADDING A DRIVER
 
-Consists of these steps:
-
-=over 
-
-=item * adding a word to the C<@driver> array in DBH.pm
-
-this array consists of whitespace-separated driver names and is used to 
-validate drivers in C<connect_data>
-
-=item * adding a module to the C<DBIx::DBH> hiearchy
+Simply add a new driver with a name of C<DBIx::DBH::$Driver>, where
+C<$Driver> is a valid DBI driver name.
 
 =back
 
@@ -303,6 +259,34 @@ validate drivers in C<connect_data>
 Terrence Brannon, E<lt>bauhaus@metaperl.comE<gt>
 
 Sybase support contributed by Rachel Richard.
+
+Mark Stosberg did all of the following:
+
+=over
+
+=item * contributed Sqlite support
+
+=item * fixed a documentation bug
+
+=item * made DBIx::DBH more scaleable
+
+Says Mark: "Just as DBI needs no modifications for a new driver to work,
+neither should this module.
+
+I've attached a patch which refactors the code to address this.
+
+Rather than relying on a hardcoded list, it tries to 'require' the
+driver, or dies with a related error message.
+
+This could lower your own maintenance effort, as others can publish
+additional drivers directly without requiring a new release of
+DBIx::DBH for it to work."
+
+L<http://rt.cpan.org/Ticket/Display.html?id=18026>
+
+=back
+
+
 
 Substantial suggestions by M. Simon Ryan Cavaletto.
 
