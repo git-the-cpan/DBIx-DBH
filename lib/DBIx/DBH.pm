@@ -9,7 +9,7 @@ use Data::Dumper;
 use DBI;
 use Params::Validate qw( :all );
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our @attr = qw
   (  

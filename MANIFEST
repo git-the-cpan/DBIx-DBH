@@ -3,6 +3,7 @@ ChangeLog
 lib/DBIx/DBH.pm
 lib/DBIx/DBH/mysql.pm
 lib/DBIx/DBH/Pg.pm
+lib/DBIx/DBH/SQLite.pm
 lib/DBIx/DBH/Sybase.pm
 Makefile.PL
 MANIFEST
@@ -12,3 +13,4 @@ t/0-DBIx-DBH.t
 t/1-attr.t
 t/mysql.t
 t/Pg.t
+t/SQLite.t
