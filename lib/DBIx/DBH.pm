@@ -1,118 +1,69 @@
 package DBIx::DBH;
 
-use 5.006001;
-use strict;
-use warnings;
+our $VERSION = '0.3';
 
-use Data::Dumper;
-
+use Moose;
+use Moose::Util::TypeConstraints;
 use DBI;
-use Params::Validate qw( :all );
 
-our $VERSION = '0.11';
+has [ 'username', 'password' ] => (is => 'rw', isa => 'Str');
 
-our @attr = qw
-  (  
-   dbi_connect_method
-   Warn
+subtype 'DSNHashRef'  => as 'HashRef'  => where { defined($_->{driver}) };
 
-   _Active
-   _Executed
-   _Kids
-   _ActiveKids
-   _CachedKids
-   _CompatMode
-
-   InactiveDestroy
-   PrintWarn
-   PrintError
-   RaiseError
-   HandleError
-   HandleSetErr
-
-   _ErrCount
-
-   ShowErrorStatement
-   TraceLevel
-   FetchHashKeyName
-   ChopBlanks
-   LongReadLen
-   LongTruncOk
-   TaintIn
-   TaintOut
-   Taint
-   Profile
-   _should-add-support-for-private_your_module_name_*
+has 'dsn'  => (is => 'rw', isa => 'DSNHashRef', required => 1);
+has 'attr' => (is => 'rw', isa => 'HashRef');
 
 
-   AutoCommit
+sub dsn_string {
+  my($self)=@_;
 
-   _Driver
-   _Name
-   _Statement
+  my %dsn = % { $self->dsn } ;
+  my $driver = delete($dsn{driver});
+  my $dsn = "dbi:$driver";
 
-   RowCacheSize
+  my $extra = join ';', map { sprintf "%s=%s", $_, $dsn{$_} } (sort keys %dsn) ;
+  length($extra) and $dsn = "$dsn:$extra";
 
-   _Username
-  );
+  $dsn;
+}
 
-# Preloaded methods go here.
+sub for_dbi {
+  my($self)=@_;
+  ($self->dsn_string, $self->username, $self->password, $self->attr);
+}
 
-Params::Validate::validation_options(allow_extra => 1);
+sub for_rose_db {
+  my($self)=@_;
 
-sub connect {
+  (
+   username => $self->username,
+   password => $self->password,
+   %{$self->dsn}
+  )
+}
 
-  my @connect_data = connect_data(@_);
+sub dbh {
+  my($self)=@_;
 
-  my $dbh;
-  eval
-    {
-      $dbh = DBI->connect( @connect_data );
-    };
+  use DBI;
 
-  die $@ if $@;
-  die 'Unable to connect to database' unless $dbh;
+  my $dbh = DBI->connect($self->for_dbi)
+}
 
-  return $dbh;
+sub conn {
+  my($self)=@_;
+
+  require DBIx::Connector;
+
+  my $dbh = DBIx::Connector->new($self->for_dbi);
 
 }
 
-sub dbi_attr {
-  my ($h, %p) = @_;
 
-  $h = {} unless defined $h;
 
-  for my $attr (@attr) {
-    if (exists $p{$attr}) {
-#      warn "$attr = $p{$attr};";
-      $h->{$attr} = $p{$attr};
-    }
-  }
 
-  $h;
-}
 
-sub connect_data {
 
-  my $class = shift;
-  my %p = @_;
-
-  my $subclass = "DBIx::DBH::$p{driver}";
-  eval "require $subclass";
-  die "unable to require $subclass to support the $p{driver} driver.\n" if $@;
-
-  my ($dsn, $user, $pass, $attr) = $subclass->connect_data(@_);
-  $attr = dbi_attr($attr, %p);
-
-  ($dsn, $user, $pass, $attr)
-
-}
-
-sub form_dsn {
-
-  (connect_data(@_))[0];
-
-}
 
 
 1;
@@ -121,107 +72,64 @@ __END__
 
 =head1 NAME
 
- DBIx::DBH - Perl extension for simplifying database connections
+ DBIx::DBH - helper for DBI connection( data)?
 
 =head1 SYNOPSIS
 
  use DBIx::DBH;
 
- my %opt = (tty => 1) ;
- my %dat = ( 
-     driver => 'Pg',
-     dbname => 'db_terry',
-     user => 'terry',
-     password => 'markso'
- );
+ my $config = DBIx::DBH->new
+   (
+     user => $user,
+     pass => $pass,
+     dsn  => { driver => 'mysql', port => 3306 },
+     attr => { RaiseError => 1 }
+   );
 
- my $dbh = DBIx::DBH->connect(%dat, %opt) ;
+ $config->for_rose_db; # outputs data structure for Rose::DB::register_db
+ $config->for_dbi;     # outputs data structure for DBI connect()
+ $config->dbh;  # makes a database connection with DBI
+ $config->conn; # makes a DBIx::Connector instance
 
 =head1 ABSTRACT
 
-DBIx::DBH is designed to facilitate and validate the process of creating 
-DBI database connections.
-It's chief and unique contribution to this set of modules on CPAN is that
-it forms the DSN string for you, regardless of database driver. Another thing 
-about this module is that
-it takes a flat Perl hash 
-as input, making it ideal for converting HTTP form data 
-and or config file information into DBI database handles. It also can form
-DSN strings for both major free databases and is subclassed to support
-extension for other databases.
-
-DBIx::DBH provides rigorous validation on the input parameters via
-L<Params::Validate>. It does not
-allow parameters which are not defined by the DBI or the database driver
-driver into the hash.
-
-I provides support for MySQL, Postgres and Sybase (thanks to Rachel Richard 
-for the Sybase support). 
-
-=head1 DBIx::DBH API
-
-=head2 $dbh = connect(%params)
-
-C<%params> requires the following as keys:
+L<DBIx::DBH> allows you to specify the DBI dsn ( L<DBI/"connect> )
+as a hash ref instead of a string. A hashref is a more viable structure
+in a few cases:
 
 =over 4
 
-=item * driver : the value matches /\a(mysql|Pg)\Z/ (case-sensitive).
+=item * working with Rose::DB
 
-=item * dbname : the value is the name of the database to connect to
+L<Rose::DB::Tutorial/Registering_data_sources> shows that L<Rose::DB>
+expects the dsn information as discrete key-value pairs as opposed to
+a string. The C<< ->for_rose_db >> method takes the DBIx::DBH instance
+and returns a hash array which can be consumed by L<Rose::DB/register_db>
 
-=back
+=item * programmatic connection attempts
 
-C<%params> can have the following optional parameters
+It is much easier to manipulate a hash programmatically if you need to 
+systematically modify it as part of a series of connection attempts.
 
-=over 4
+=item * high-level structure
 
-=item * user
+Whether you are talking about configuration file utilities or form data,
+most data from these modules comes back directly as hashes. So you have
+a more direct way of shuttling data into a database connection if you 
+use this module:
 
-=item * password
+   my $dbh = DBIx::DBH->(dsn => $cgi->form_data->{dsn})->dbh;
 
-=item * host
-
-=item * port
-
-=back
-
-C<%params> can also have parameters specific to a particular database
-driver. See
-L<DBIx::DBH::Sybase>,
-L<DBIx::DBH::mysql> and L<DBIx::DBH::Pg> for additional parameters
-acceptable based on database driver.
-
-=head2 ($dsn, $user, $pass, $attr) = connect_data(%params)
-
-C<connect_data> takes the same arguments as C<connect()> but returns
-a list of the 4 arguments required by the L<DBI> C<connect()>
-function. This is useful for working with modules that have an
-alternative connection syntax such as L<DBIx::AnyDBD> or 
-L<Alzabo>.
-
-=head2 ($dsn, $user, $pass, $attr) = connect_data(%params)
-
-C<connect_data> takes the same arguments as C<connect()> but returns
-a list of the 4 arguments required by the L<DBI> C<connect()>
-function. This is useful for working with modules that have an
-alternative connection syntax such as L<DBIx::AnyDBD> or 
-L<Alzabo>.
-
-=head2 $dsn = form_dsn(%params)
-
-C<form_dsn> takes the same arguments as C<connect()> but returns
-only the properly formatted DSN string. This is also 
-useful for working with modules that have an
-alternative connection syntax such as L<DBIx::AnyDBD> or 
-L<Alzabo>.
-
-=head1 ADDING A DRIVER
-
-Simply add a new driver with a name of C<DBIx::DBH::$Driver>, where
-C<$Driver> is a valid DBI driver name.
+Instead of a bunch of string twiddling.
 
 =back
+
+=head1 METHODS
+
+=head1 Legacy Version
+
+A procedural version of DBIx::DBH is still available as
+L<DBIx::DBH::Legacy>.
 
 =head1 SEE ALSO
 
@@ -237,62 +145,27 @@ C<$Driver> is a valid DBI driver name.
 
 =back
 
-=head1 TODO
+=head2 Links
 
-=over
+=head3 "Avoiding compound data in software and system design"
 
-=item * expose parm validation info:
+L<http://perlmonks.org/?node_id=835894>
 
- > 
- > It would be nice if the parameter validation info was exposed in some 
- > way, so that an interactive piece of software can ask a user which 
- > driver they want, then query your module for a list of supported 
- > parameters, then ask the user to fill them in. (Perhaps move the hash 
- > of validation parameters to a new method named valid_params, and then 
- > have connect_data call that method and pass the return value to 
- > validate?)
 
-=cut
 
 =head1 AUTHOR
 
 Terrence Brannon, E<lt>bauhaus@metaperl.comE<gt>
 
-Sybase support contributed by Rachel Richard.
+thanks to Khisanth and Possum and DrForr on #perl-help
 
-Mark Stosberg did all of the following:
+=head2 SOURCE CODE REPO
 
-=over
-
-=item * contributed Sqlite support
-
-=item * fixed a documentation bug
-
-=item * made DBIx::DBH more scaleable
-
-Says Mark: "Just as DBI needs no modifications for a new driver to work,
-neither should this module.
-
-I've attached a patch which refactors the code to address this.
-
-Rather than relying on a hardcoded list, it tries to 'require' the
-driver, or dies with a related error message.
-
-This could lower your own maintenance effort, as others can publish
-additional drivers directly without requiring a new release of
-DBIx::DBH for it to work."
-
-L<http://rt.cpan.org/Ticket/Display.html?id=18026>
-
-=back
-
-
-
-Substantial suggestions by M. Simon Ryan Cavaletto.
+L<http://github.com/metaperl/dbix-dbh>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004 by Terrence Brannon
+Copyright (C) by Terrence Brannon
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.4 or,
@@ -300,3 +173,4 @@ at your option, any later version of Perl 5 you may have available.
 
 
 =cut
+
