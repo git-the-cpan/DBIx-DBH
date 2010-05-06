@@ -1,6 +1,6 @@
 package DBIx::DBH;
 
-our $VERSION = '0.3';
+our $VERSION = '0.4';
 
 use Moose;
 use Moose::Util::TypeConstraints;
@@ -10,7 +10,7 @@ has [ 'username', 'password' ] => (is => 'rw', isa => 'Str');
 
 subtype 'DSNHashRef'  => as 'HashRef'  => where { defined($_->{driver}) };
 
-has 'dsn'  => (is => 'rw', isa => 'DSNHashRef', required => 1);
+has 'dsn'  => (is => 'rw', isa => 'DSNHashRef');
 has 'attr' => (is => 'rw', isa => 'HashRef');
 
 
@@ -30,6 +30,16 @@ sub dsn_string {
 sub for_dbi {
   my($self)=@_;
   ($self->dsn_string, $self->username, $self->password, $self->attr);
+}
+
+
+sub for_skinny {
+  my($self)=@_;
+  (
+   dsn => $self->dsn_string, 
+   username => $self->username, 
+   password => $self->password
+   );
 }
 
 sub for_rose_db {
@@ -86,6 +96,7 @@ __END__
      attr => { RaiseError => 1 }
    );
 
+ $config->for_skinny ; # outputs data structure for DBIx::Skinny setup
  $config->for_rose_db; # outputs data structure for Rose::DB::register_db
  $config->for_dbi;     # outputs data structure for DBI connect()
  $config->dbh;  # makes a database connection with DBI
@@ -106,6 +117,20 @@ expects the dsn information as discrete key-value pairs as opposed to
 a string. The C<< ->for_rose_db >> method takes the DBIx::DBH instance
 and returns a hash array which can be consumed by L<Rose::DB/register_db>
 
+NOTE: A working example for using DBIx::DBH to connect in 
+L<Rose::DB::Object> is L<here|http://github.com/metaperl/dbix-cookbook/blob/master/lib/DBIx/Cookbook/RDBO/RoseDB.pm>
+
+
+=item * working with DBIx:Skinny
+
+Unless you pass in a living, breathing L<DBI> database handle,
+L<DBIx::Skinny> expects the connection information to be passed in
+key-value pairs. The C<< ->for_skinny >> addresses this API demand.
+
+NOTE: A working example for using DBIx::DBH to connect in
+L<DBIx::Skinny> is L<here|http://github.com/metaperl/dbix-cookbook/blob/master/lib/DBIx/Cookbook/Skinny/Sakila.pm#L15>
+
+
 =item * programmatic connection attempts
 
 It is much easier to manipulate a hash programmatically if you need to 
@@ -118,7 +143,8 @@ most data from these modules comes back directly as hashes. So you have
 a more direct way of shuttling data into a database connection if you 
 use this module:
 
-   my $dbh = DBIx::DBH->(dsn => $cgi->form_data->{dsn})->dbh;
+   my $dbh = DBIx::DBH->(map { $_ => $cgi->param($_) } 
+                 grep(/dsn|user|pass/, keys %{$cgi->Vars})->dbh;
 
 Instead of a bunch of string twiddling.
 
@@ -130,6 +156,15 @@ Instead of a bunch of string twiddling.
 
 A procedural version of DBIx::DBH is still available as
 L<DBIx::DBH::Legacy>.
+
+=head1 An example extension
+
+The file F<DBH.pm> in L<DBIx::Cookbook> is an example of deriving a connection
+class from DBIx::DBH -
+
+L<http://github.com/metaperl/dbix-cookbook/blob/master/lib/DBIx/Cookbook/DBH.pm>
+
+
 
 =head1 SEE ALSO
 
@@ -155,9 +190,9 @@ L<http://perlmonks.org/?node_id=835894>
 
 =head1 AUTHOR
 
-Terrence Brannon, E<lt>bauhaus@metaperl.comE<gt>
+Terrence Brannon, C<< metaperl@gmail.com >>
 
-thanks to Khisanth and Possum and DrForr on #perl-help
+thanks to Khisanth, Possum and DrForr on #perl-help
 
 =head2 SOURCE CODE REPO
 
