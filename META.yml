@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               DBIx-DBH
-version:            0.4
+version:            1.0
 abstract:           ~
 author:  []
 license:            unknown
